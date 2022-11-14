@@ -18,6 +18,7 @@ target/
 mta_archives/
 
 # Other
+.env
 .DS_Store
 *.orig
 *.log
