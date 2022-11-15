@@ -1,10 +1,10 @@
 using {com.matmir as matmir} from '../db/schema';
 
-@path: 'MainService'
+@path : 'MainService'
 define service CatalogService {
 
     entity Products          as
-        select from matmir.materials.Products {
+        select from matmir.reports.Products {
             ID,
             Name          as ProductName     @mandatory,
             Description                      @mandatory,
@@ -15,7 +15,13 @@ define service CatalogService {
             Height,
             Width,
             Depth,
-            Quantity,
+            Quantity                         @(
+                mandatory,
+                assert.range : [
+                    0.00,
+                    20.00
+                ]
+            ),
             UnitOfMeasure as ToUnitOfMeasure @mandatory,
             Currency      as ToCurrency      @mandatory,
             Category      as ToCategory      @mandatory,
@@ -23,7 +29,10 @@ define service CatalogService {
             DimensionUnit as ToDimensionUnit,
             SalesData,
             Supplier,
-            Reviews
+            Reviews,
+            Rating,
+            StockAvailability,
+            ToStockAvailibilty
         };
 
     @readonly
@@ -43,6 +52,7 @@ define service CatalogService {
             Name,
             Rating,
             Comment,
+            createdAt,
             Product as ToProduct
         };
 
@@ -89,8 +99,27 @@ define service CatalogService {
 
     @readonly
     entity VH_DimensionUnits as
-        select from matmir.materials.DimensionUnits {
+        select
             ID          as Code,
             Description as Text
-        };
+        from matmir.materials.DimensionUnits;
 }
+
+define service Reports {
+    entity AverageRating as projection on matmir.reports.AverageRating;
+
+    entity EntityCasting as
+        select
+            cast(
+                Price as      Integer
+            )     as Price,
+            Price as Price2 : Integer
+        from matmir.materials.Products;
+
+    entity EntityExists  as
+        select from matmir.materials.Products {
+            Name
+        }
+        where
+            exists Supplier[Name = 'Exotic Liquids'];
+};

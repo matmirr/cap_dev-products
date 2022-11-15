@@ -26,8 +26,8 @@ type Dec : Decimal(16, 2);
 context materials {
 
     entity Products : cuid, managed {
-        createdAt        : Timestamp @cds.on.insert : $now;
-        modifiedAt       : Timestamp @cds.on.insert : $now  @cds.on.update : $now;
+        createdAt        : Timestamp  @cds.on.insert : $now;
+        modifiedAt       : Timestamp  @cds.on.insert : $now  @cds.on.update : $now;
         Name             : localized String not null;
         Description      : localized String;
         ImageUrl         : String;
@@ -57,7 +57,7 @@ context materials {
     entity StockAvailability {
         key ID          : Integer;
             Description : localized String;
-            Product     : Association to one Products
+            Product     : Association to Products
     };
 
     entity Currencies {
@@ -104,10 +104,49 @@ context sales {
     };
 
     entity ProductReviews : cuid {
-        Product : Association to one materials.Products;
-        Name    : String;
-        Rating  : Integer;
-        Comment : String;
+        Product   : Association to one materials.Products;
+        Name      : String;
+        Rating    : Integer;
+        Comment   : String;
+        createdAt : DateTime;
     };
 
 };
+
+context reports {
+
+    entity AverageRating as
+        select from matmir.sales.ProductReviews {
+            Product.ID  as ProductId,
+            avg(Rating) as AverageRating : Decimal(16, 2)
+        }
+        group by
+            Product.ID;
+
+    entity Products      as
+        select from matmir.materials.Products
+        mixin {
+            ToStockAvailibilty : Association to matmir.materials.StockAvailability
+                                     on ToStockAvailibilty.ID = $projection.StockAvailability;
+            ToAverageRating    : Association to AverageRating
+                                     on ToAverageRating.ProductId = ID;
+        }
+
+        into {
+            *,
+            ToAverageRating.AverageRating as Rating,
+            case
+                when
+                    Quantity >= 8
+                then
+                    3
+                when
+                    Quantity > 0
+                then
+                    2
+                else
+                    1
+            end                           as StockAvailability : Integer,
+            ToStockAvailibilty
+        }
+}

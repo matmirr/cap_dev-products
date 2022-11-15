@@ -1,22 +1,22 @@
 const cds = require("@sap/cds");
 const cors = require("cors");
 const adapterProxy = require("@sap/cds-odata-v2-adapter-proxy");
-const helmet = require("helmet");
+//const helmet = require("helmet");
 
 cds.on("bootstrap", (app) => {
 
     app.use(adapterProxy());
     app.use(cors());
-    app.use(
-        helmet({
-            contentSecurityPolicy: {
-                directives: {
-                    ...helmet.contentSecurityPolicy.getDefaultDirectives()
-                    // custom settings
-                }
-            }
-        })
-    )
+    // app.use(
+    //     helmet({
+    //         contentSecurityPolicy: {
+    //             directives: {
+    //                 ...helmet.contentSecurityPolicy.getDefaultDirectives()
+    //                 // custom settings
+    //             }
+    //         }
+    //     })
+    // )
 
     app.get("/alive", (_, res) => {
         res.status(200).send("Server is alive");
